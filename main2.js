@@ -8,11 +8,16 @@ const init = () => {
   }
 
   //Light
-  let pointLight = getPointLight(1);
-  pointLight.position.y = 2;
-  pointLight.intensity = 2;
-  gui.add(pointLight, 'intensity', 0, 10);
-  gui.add(pointLight.position, 'y', 0, 5 );
+  let spotLight = getSpotLight(1);
+  spotLight.position.y = 5;
+  spotLight.intensity = 2;
+  spotLight.penumbra = 0.5;
+
+  gui.add(spotLight, 'intensity', 0, 10);
+  gui.add(spotLight.position, 'x', 0, 20);
+  gui.add(spotLight.position, 'y', 0, 10);
+  gui.add(spotLight.position, 'z', 0, 20);
+  // gui.add(spotLight, 'penumbra', 0, 1 );
 
   //Sphere
   let sphere = getSphere(0.05);
@@ -27,8 +32,8 @@ const init = () => {
   // plane.position.y = 1;
 
   scene.add(plane);
-  pointLight.add(sphere)
-  scene.add(pointLight);
+  spotLight.add(sphere)
+  scene.add(spotLight);
   scene.add(boxGrid);
   
   //Camera
@@ -38,19 +43,19 @@ const init = () => {
     1, //Near clipping plan
     1000 //Far clipping plan
   );
-  camera.position.x = 1;
-  camera.position.y = 2;
-  camera.position.z = 5;
+  camera.position.x = 5;
+  camera.position.y = 10;
+  camera.position.z = 15;
 
   camera.lookAt(new THREE.Vector3(0,0,0))
   
-  let renderer = new THREE.WebGLRenderer();
+  let renderer = new THREE.WebGLRenderer({antialias: true});
   renderer.shadowMap.enabled = true;
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setClearColor('rgb(120,120,120)');
   document.getElementById('webgl').appendChild(renderer.domElement);
 
-    let controls = new THREE.OrbitControls(camera, renderer.domElement)
+  let controls = new THREE.OrbitControls(camera, renderer.domElement);
 
   update(renderer, scene, camera, controls);
   return scene;
@@ -124,14 +129,30 @@ let getSphere = (size) => {
   return mesh;
 }
 
-//Light
+//Point light
 let getPointLight = (intensity) => {
   let light = new THREE.PointLight(0xffffff, intensity);
   light.castShadow = true;
- 
+  
+  light.shadow.bias = 0.001;
+  light.shadowMapWidth = 2048;
+  light.shadowMapHeight = 2048;
+
   return light;
 }
 
+//Spot light
+let getSpotLight = (intensity) => {
+  let light = new THREE.SpotLight(0xffffff, intensity);
+  light.castShadow = true;
+
+  light.shadow.bias = 0.001;
+  light.shadow.mapSize.width = 2048;
+  light.shadow.mapSize.height = 2048;
+
+  return light;
+}
+  
 let update = (renderer, scene, camera, controls) => {
   renderer.render(
     scene,
